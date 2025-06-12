@@ -417,8 +417,28 @@ class IniParser:
         if val is None:
             return True
         for t in IniValueTypes:
-            if isinstance(val, t):
-                return True
+            origin = get_origin(t)  #型の元を取得
+            args = get_args(t)      #ジェネリックの引数を取得
+            if origin is list:      #List[...] 型のとき
+                if isinstance(val, list) and all(isinstance(elem, args[0]) for elem in val):
+                    return True
+            else:
+                if isinstance(val, t):  #通常の型(str, intなど)のチェック
+                    return True
+        return False
+
+    @staticmethod
+    def is_valid_ini_value(value) -> bool:
+        for valid_type in IniValueTypes:
+            if hasattr(valid_type, '__origin__') and valid_type.__origin__ == list:
+                # List[...] の型の場合、中の要素もチェック
+                if isinstance(value, list):
+                    elem_type = valid_type.__args__[0]
+                    if all(isinstance(elem, elem_type) for elem in value):
+                        return True
+            else:
+                if isinstance(value, valid_type):
+                    return True
         return False
 
     @staticmethod
@@ -436,6 +456,8 @@ class IniParser:
                 if not isinstance(item_val, dict):
                     return False
                 if 'type' not in item_val or 'inf' not in item_val:
+                    return False
+                if(IniParser._is_valid_ini_value(item_val['inf']) == False):
                     return False
         return True
 
