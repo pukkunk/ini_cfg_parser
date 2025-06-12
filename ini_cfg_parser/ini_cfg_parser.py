@@ -5,6 +5,7 @@
 import os
 import sys
 import re
+import pprint
 import configparser
 from enum import IntEnum,auto
 from typing import Any, List, Tuple, Dict, Union, Optional, Callable, get_origin, get_args, TypedDict, Type
@@ -79,7 +80,8 @@ class IniParser:
             IniParser.die_print(msg)
         if(IniParser.is_valid_ini_dict(get_ini_dict_val) == False):
             msg = f"called def {sys._getframe().f_code.co_name}()\n"
-            msg += f"Error detect. The type of get_ini_dict_val is invalid. type is not 'IniDict'"
+            msg += f"Error detect. The type of get_ini_dict_val is invalid. type is not 'IniDict'\n"
+            msg += pprint.pformat(get_ini_dict_val)
             IniParser.die_print(msg)
         self.encoding = encoding
 
@@ -413,6 +415,8 @@ class IniParser:
         return self.SectionProxy(self, section)
 
     @staticmethod
+    # 引数valが、None or 型IniValue(カスタム型)であるかをチェックする。
+    # IniValue = Union[str, int, float, bool, List[str], List[int], List[float], List[bool]]
     def _is_valid_ini_value(val: Any) -> bool:
         if val is None:
             return True
