@@ -1,4 +1,4 @@
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 from .ini_cfg_parser import IniParser, DieMode, IniDict, IniItem, IniType, IniValue, IniParserError
 
