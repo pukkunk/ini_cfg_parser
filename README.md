@@ -74,13 +74,16 @@ IniValue = Union[str, int, float, bool, List[str], List[int], List[float], List[
 ```
 
 When an error occurs in this library, the function `die_print()` is used to display a message.
-　Operation Mode: There are four operation modes.
-　　nSysExit : Executes `sys.exit(1)` to terminate the script.
-　　nTkInter : Use `tkinter` to display a message in a dialog. Then execute sys.exit(1) to terminate the script.
-　　nException : Raises exception `IniParserError`. The error message is passed as the error information of the exception.
-　　nTkInterException : It uses `tkinter` to display a message in a dialog and then raises the exception `IniParserError`.
-　Setting the Mode:  
-　　Set with `set_die_mode()`.
+
+Operation Mode: There are four operation modes.
+
+- `nSysExit`: Executes `sys.exit(1)` to terminate the script.
+- `nTkInter`: Uses `tkinter` to display a message in a dialog. Then executes `sys.exit(1)` to terminate the script.
+- `nException`: Raises exception `IniParserError`. The error message is passed as the error information of the exception.
+- `nTkInterException`: Uses `tkinter` to display a message in a dialog and then raises the exception `IniParserError`.
+
+Setting the Mode:
+Use `set_die_mode()` to set the mode.
 
 How to set it up:
 
