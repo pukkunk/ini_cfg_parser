@@ -46,7 +46,6 @@ class IniItem(TypedDict):
 IniDict = Dict[str, Dict[str, IniItem]]
 
 class IniParser:
-    __version__ = "0.0.3"
     mode = DieMode.nException
     use_def_val: bool = False
     fallback_def_val: Optional[IniValue] = None
@@ -108,6 +107,10 @@ class IniParser:
             self.read_inifile(self.ini_path, self.config)
 
         self._load_values_from_file()
+
+    def items(self):
+        for section in self.sections():
+            yield section, dict(self[section].items())
 
     ##@fn _validate_ini_dict_types()
     # @brief        dict型変数self.ini_dictをチェックし、規定のdict型であるかを検証する。規定外の場合exception IniParserErrorを発生。
@@ -699,13 +702,44 @@ class IniParser:
 
         def items(self):
             try:
-                section_dict = self.parser.ini_dict[self.section]
-                return ((key, value['inf']) for key, value in section_dict.items())
+                ini_section = self.parser.ini_dict.get(self.section, {})  # ini_dict の section データ
+                config_section = self.parser.config[self.section]         # config の section データ（DEFAULT 継承あり）
+
+                # DEFAULT セクションのキーを除くために、明示的に DEFAULT のキーを取得
+                default_keys = self.parser.config['DEFAULT'].keys() if 'DEFAULT' in self.parser.config else []
+
+                seen_keys = set()
+
+                # まず ini_dict にある key を優先して返却（value['inf']）
+                for key, val in ini_section.items():
+                    seen_keys.add(key)
+                    yield (key, val['inf'])  # #修正
+
+                # 次に config にある key のうち、DEFAULT に由来しない＆ini_dict にもない key を返却
+                for key in config_section.keys():
+                    if key not in seen_keys and key not in default_keys:
+                        seen_keys.add(key)
+                        yield (key, config_section[key])  # #修正
+
             except KeyError:
                 return iter([])  # セクションが存在しない場合は空のイテレータを返す
 
         def keys(self):
             try:
-                return self.parser.ini_dict[self.section].keys()
+                ini_section = self.parser.ini_dict.get(self.section, {})
+                config_section = self.parser.config[self.section]
+
+                # DEFAULT セクションのキーを取得（存在しない場合は空）
+                default_keys = self.parser.config['DEFAULT'].keys() if 'DEFAULT' in self.parser.config else []
+
+                # ini_dictのキーを優先
+                seen_keys = set(ini_section.keys())
+
+                # config のキーのうち、DEFAULT から継承されていないものを追加
+                for key in config_section.keys():
+                    if key not in seen_keys and key not in default_keys:
+                        seen_keys.add(key)
+
+                return seen_keys
             except KeyError:
                 return []

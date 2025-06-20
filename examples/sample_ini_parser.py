@@ -18,7 +18,16 @@ except ImportError as e:
     msg += f"Details: {e}"
     print(msg)
     raise SystemExit(NG_VAL)
-from typing import List
+from typing import List, Optional
+
+try:
+    from packaging import version
+except ImportError as e:
+    msg = f"The 'packaging' module is required but not installed.\n"
+    msg += f"You can install it with: pip install packaging\n"
+    msg += f"Details: {e}"
+    print(msg)
+    raise SystemExit(NG_VAL)
 
 def main() -> None :
     encoding = "utf8"
@@ -136,6 +145,13 @@ def main() -> None :
         for key, val in ini_parser3['DEFAULT'].items():
             print(f"section={section},key={key},val={val}")
     print("-=-=-=-=")
+    ini_file4 = "sample3.ini"
+    default_ini4 = get_ini_dict_val4()
+    ini_parser4 = ini.IniParser(ini_file4, default_ini4, encoding)
+    for section,items in ini_parser4.items():
+        for key,val in items.items():
+            print(f"section={section},key={key},val={val},type={type(val)}")
+    print("-=-=-=-=")
 
     section = 'Callback'
     key = 'ext'
@@ -221,6 +237,32 @@ def get_ini_dict_val3() -> ini.IniDict:
         },
     }
 
+def get_ini_dict_val4() -> ini.IniDict:
+    '''
+    Set the information you want to set in section="DEFAULT" of the ini file in dict format.
+    '''
+    return {
+        'Callback': {
+            'backup': {'type': bool, 'inf': False},
+            'zip': {'type': bool, 'inf': False},
+            'repall': {'type': bool, 'inf': False},
+            'original': {'type': bool, 'inf': False},
+            'ignorecase': {'type': bool, 'inf': False},
+            'multiline': {'type': bool, 'inf': False},
+            'dotall': {'type': bool, 'inf': False},
+            'fullmatch': {'type': bool, 'inf': False},
+            'notregex': {'type': bool, 'inf': False},
+            'ext': {'type': List[str], 'inf': ['.txt', '.py' , '.pl', '.vhd', '.c']},
+            'resultdir': {'type': str, 'inf': 'Result'},
+            'in_file': {'type': str, 'inf': 'hoge.bat'},
+        },
+        'user1': {
+            'user': {'type': str, 'inf': 'user1'},
+            'password': {'type': str, 'inf': 'hogepass1'},
+            'host': {'type': str, 'inf': '172.31.2.190'},
+        },
+    }
+
 ##
 # @brief        After displaying the string of the function die, execute sys.exit(1). It does not exit after displaying a message, but exits with return code 1.
 # @param[in]    filename        : target file name [type str]
@@ -229,5 +271,28 @@ def die_print(msg):
     print(msg)
     sys.exit(NG_VAL)
 
+## @fn         check_version()
+#  @brief      Checks the version information of an object and raises an exception if the version does not meet the minimum specified.
+#  @param[in]  obj             : The object (typically a class or module) that has a version attribute. [type: object]
+#  @param[in]  attr            : The attribute name that stores version information (default is "__version__"). [type: str]
+#  @param[in]  package_name    : The package name to use in the error message. If None, it is inferred from the object. [type: Optional[str]]
+#  @param[in]  min_version     : The minimum required version in string format (e.g., "1.2.3"). [type: str]
+#  @retval     None            : Raises ImportError or AttributeError if the version is invalid or missing.
+def check_version(obj: object, attr: str = "__version__", package_name: Optional[str] = None, min_version: str = "0.0.0") -> None :
+    current_version = getattr(obj, attr, None)
+
+    if current_version is None:
+        raise AttributeError(f"{obj} has no attribute '{attr}'")
+
+    if package_name is None:
+        package_name = getattr(obj, '__name__', obj.__class__.__name__)
+
+    if version.parse(current_version) < version.parse(min_version):
+        raise ImportError(
+            f"{package_name} version {current_version} is too old. "
+            f"Requires version {min_version} or newer."
+        )
+
 if __name__ == "__main__":
+    check_version(ini, min_version="0.1.2")
     main()

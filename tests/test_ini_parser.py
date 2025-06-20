@@ -522,3 +522,138 @@ def test_fallback_def_val_use_def_val():
     assert lst_bool == [False, True]
     assert ini.IniParser.get_use_def_val() == True
     assert ini.IniParser.get_fallback_def_val() == [False, True]
+
+def test_def_items():
+    ini_file = "config.ini"
+    if os.path.isfile(ini_file):
+        os.remove(ini_file)
+
+    encoding = "utf8"
+    default_ini = {
+        'Callback': {
+            'backup': {'type': bool, 'inf': False},
+            'zip': {'type': bool, 'inf': False},
+            'repall': {'type': bool, 'inf': False},
+            'original': {'type': bool, 'inf': False},
+            'ignorecase': {'type': bool, 'inf': False},
+            'multiline': {'type': bool, 'inf': False},
+            'dotall': {'type': bool, 'inf': False},
+            'fullmatch': {'type': bool, 'inf': False},
+            'notregex': {'type': bool, 'inf': False},
+            'lst_int': {'type': List[int], 'inf': [999]},
+            'lst_float': {'type': List[float], 'inf': [3.14, 1.23]},
+            'lst_bool': {'type': List[bool], 'inf': [False, True]},
+            'ext': {'type': List[str], 'inf': ['.txt', '.py' , '.pl', '.vhd', '.c']},
+            'resultdir': {'type': str, 'inf': 'Result'},
+            'in_file': {'type': str, 'inf': 'hoge.bat'},
+            'level': {'type': int, 'inf': 100},
+            'pi': {'type': float, 'inf': 3.14},
+        },
+        'user1': {
+            'user': {'type': str, 'inf': 'user1'},
+            'password': {'type': str, 'inf': 'hogepass1'},
+            'host': {'type': str, 'inf': '172.31.2.190'},
+        },
+    }
+
+    ini.IniParser.set_die_mode(ini.DieMode.nException)
+    try:
+        ini_parser = ini.IniParser(ini_file, default_ini, encoding)
+    except ini.IniParserError as e:
+        print(e)
+        sys.exit(1)
+    expected = {
+        'Callback': {
+            'backup': False,
+            'zip': False,
+            'repall': False,
+            'original': False,
+            'ignorecase': False,
+            'multiline': False,
+            'dotall': False,
+            'fullmatch': False,
+            'notregex': False,
+            'lst_int': [999],
+            'lst_float': [3.14, 1.23],
+            'lst_bool': [False, True],
+            'ext': ['.txt', '.py', '.pl', '.vhd', '.c'],
+            'resultdir': 'Result',
+            'in_file': 'hoge.bat',
+            'level': 100,
+            'pi': 3.14,
+        },
+        'user1': {
+            'user': 'user1',
+            'password': 'hogepass1',
+            'host': '172.31.2.190',
+        },
+    }
+
+    # チェック対象のセクションとキー/値を1つの辞書に格納
+    actual = {}
+    for section_name in ini_parser.sections():
+        actual[section_name] = dict(ini_parser[section_name].items())
+    # 値も含めて完全一致しているか確認
+    assert actual == expected, f"Mismatch in ini content.\nExpected:\n{expected}\nActual:\n{actual}"
+
+    actual = {}
+    for section_name,items in ini_parser.items():
+        actual[section_name] = items
+    # 値も含めて完全一致しているか確認
+    assert actual == expected, f"Mismatch in ini content.\nExpected:\n{expected}\nActual:\n{actual}"
+
+
+def test_def_keys():
+    ini_file = "config.ini"
+    if os.path.isfile(ini_file):
+        os.remove(ini_file)
+
+    encoding = "utf8"
+    default_ini = {
+        'Callback': {
+            'backup': {'type': bool, 'inf': False},
+            'zip': {'type': bool, 'inf': False},
+            'repall': {'type': bool, 'inf': False},
+            'original': {'type': bool, 'inf': False},
+            'ignorecase': {'type': bool, 'inf': False},
+            'multiline': {'type': bool, 'inf': False},
+            'dotall': {'type': bool, 'inf': False},
+            'fullmatch': {'type': bool, 'inf': False},
+            'notregex': {'type': bool, 'inf': False},
+            'lst_int': {'type': List[int], 'inf': [999]},
+            'lst_float': {'type': List[float], 'inf': [3.14, 1.23]},
+            'lst_bool': {'type': List[bool], 'inf': [False, True]},
+            'ext': {'type': List[str], 'inf': ['.txt', '.py', '.pl', '.vhd', '.c']},
+            'resultdir': {'type': str, 'inf': 'Result'},
+            'in_file': {'type': str, 'inf': 'hoge.bat'},
+            'level': {'type': int, 'inf': 100},
+            'pi': {'type': float, 'inf': 3.14},
+        },
+        'user1': {
+            'user': {'type': str, 'inf': 'user1'},
+            'password': {'type': str, 'inf': 'hogepass1'},
+            'host': {'type': str, 'inf': '172.31.2.190'},
+        },
+    }
+
+    ini.IniParser.set_die_mode(ini.DieMode.nException)
+    try:
+        ini_parser = ini.IniParser(ini_file, default_ini, encoding)
+    except ini.IniParserError as e:
+        print(e)
+        sys.exit(1)
+
+    expected = {
+        'Callback': sorted([
+            'backup', 'zip', 'repall', 'original', 'ignorecase', 'multiline',
+            'dotall', 'fullmatch', 'notregex', 'lst_int', 'lst_float', 'lst_bool',
+            'ext', 'resultdir', 'in_file', 'level', 'pi'
+        ]),
+        'user1': sorted(['user', 'password', 'host']),
+    }
+
+    actual = {}
+    for section_name in ini_parser.sections():
+        actual[section_name] = sorted(list(ini_parser[section_name].keys()))
+
+    assert actual == expected, f"Mismatch in section keys.\nExpected:\n{expected}\nActual:\n{actual}"
