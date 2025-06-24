@@ -6,6 +6,7 @@ import os
 import sys
 import re
 import pprint
+import copy
 import configparser
 from enum import IntEnum,auto
 from typing import Any, List, Tuple, Dict, Union, Optional, Callable, get_origin, get_args, TypedDict, Type
@@ -70,7 +71,7 @@ class IniParser:
             msg += f"Current type: {type(IniParser.use_def_val)}"
             IniParser.die_print(msg)
         self.ini_path = ini_path
-        self.config = configparser.ConfigParser(interpolation=None)
+        self.config = configparser.ConfigParser(defaults=None, interpolation=None)
         if not isinstance(ini_path, str):
             msg = f"called def {sys._getframe().f_code.co_name}()\n"
             msg += f"Error detect. The type of ini_path is invalid. type is not 'str'\n"
@@ -210,7 +211,6 @@ class IniParser:
             for key, val in items.items():
                 self.config[section][key] = self._serialize(val['inf'])
 
-        #print(f"[INFO] iniファイルが存在しないため作成します: {self.ini_path}")
         IniParser.write_inifile(self.ini_path, self.config, self.encoding)
 
     def _serialize(self, value: Any) -> str:
@@ -226,7 +226,7 @@ class IniParser:
 
         #ファイルが存在しない場合
         if not os.path.exists(self.ini_path):
-            self.config = configparser.ConfigParser(interpolation=None)
+            self.config = configparser.ConfigParser(defaults=None, interpolation=None)
             self.config._defaults.update(self.default_dict)
             modified = True  # 新規ファイル作成
         #ファイルが存在する場合
@@ -327,7 +327,7 @@ class IniParser:
     # @param[in]    key             : key name [type str]
     # @param[in]    fallback        : fallback value [type _sentinel]
     # @retval                       : result value [type Any]
-    def _get_value(self, section: str, key: str, fallback) -> Any:
+    def _get_value(self, section: str, key: str, fallback: Any = _sentinel) -> Any:
         #引数fallback指定無し/指定有りを判定
         #引数fallback指定無し
         if fallback is self._sentinel:
@@ -339,11 +339,16 @@ class IniParser:
             fallback_value = fallback
 
         self.debug_print(f"---- section={section},key={key}", level=2)
-        self.debug_print(f"detect keyerror. section={section},key={key}", level=2)
-        # def_dictにkeyが無いもしくは def_dict[key]に'type'情報が無い場合
+        # type情報が無い場合
         if key not in self.def_dict or 'type' not in self.def_dict[key]:
+            self.debug_print(f"detect keyerror. [self.def_dict] section={section},key={key}", level=2)
+            # self.configにkeyが存在する場合
+            if section in self.config and key in self.config[section]:
+                valcfg = self.config[section][key]
+                self.debug_print(f"case1:section={section},key={key},val={valcfg},type={type(valcfg)}", level=2)
+                return valcfg
             # fallback指定なし and self.use_def_val = True
-            if not fallback_provided and self.use_def_val:
+            elif not fallback_provided and self.use_def_val:
                 self.debug_print(f"case2:section={section},key={key}", level=2)
                 return self.fallback_def_val
             else:
@@ -355,38 +360,83 @@ class IniParser:
         try:
             # configに対象のsection,keyが存在することを判定
             if self.config.has_option(section, key):
-                self.debug_print(f"case4:section={section},key={key}", level=2)
                 raw_val = self.config.get(section, key)
+                self.debug_print(f"case4:section={section},key={key},val={raw_val},type={type(raw_val)}", level=2)
                 val = self._cast_value(raw_val, expected_type)
+            # 下記(1)and(2)がTrue
+            # (1)引数get_ini_dict_valの指定セクション名が存在
+            # (2)引数get_ini_dict_valの指定セクション名に対象のkeyが存在
+            elif section in self.ini_dict and key in self.ini_dict[section]:
+                self.debug_print(f"case5:section={section},key={key}", level=2)
+                val = self.ini_dict[section][key]['inf']
             # configのセクション"DEFAULT"に対象のkeyが有ることを判定
             elif key in self.config.defaults():
-                self.debug_print(f"case5:section={section},key={key}", level=2)
+                self.debug_print(f"case6:section={section},key={key}", level=2)
                 raw_val = self.config.defaults()[key]
                 val = self._cast_value(raw_val, expected_type)
             # 下記(1)and(2)がTrue
             # (1)引数get_ini_dict_valのセクション'DEFAULT'が存在
             # (2)引数get_ini_dict_valのセクション'DEFAULT'に対象のkeyが存在
             elif 'DEFAULT' in self.ini_dict and key in self.ini_dict['DEFAULT']:
-                self.debug_print(f"case6:section={section},key={key}", level=2)
+                self.debug_print(f"case7:section={section},key={key}", level=2)
                 val = self.ini_dict['DEFAULT'][key]['inf']
             # 下記(1)and(2)がTrue
             #(1)引数fallback指定無し
             #(2)option use_def_valで変数fallback_def_valを使用を指定
             #引数fallback指定無し
             elif not fallback_provided and self.use_def_val:
-                self.debug_print(f"case7:section={section},key={key},fallback_provided={fallback_provided},use_def_val={self.use_def_val}", level=2)
+                self.debug_print(f"case8:section={section},key={key},fallback_provided={fallback_provided},use_def_val={self.use_def_val}", level=2)
                 return self.fallback_def_val
             else:
-                self.debug_print(f"case8:section={section},key={key},fallback_provided={fallback_provided},use_def_val={self.use_def_val}", level=2)
+                self.debug_print(f"case9:section={section},key={key},fallback_provided={fallback_provided},use_def_val={self.use_def_val}", level=2)
                 return fallback_value
         except ValueError as e:
-            self.debug_print(f"case9,Exception", level=2)
+            self.debug_print(f"case10,Exception", level=2)
             self.die_print(f"Detect error. ValueError. [{section}] {key}: {e}")
         except Exception:
-            self.debug_print(f"case10,Exception", level=2)
+            self.debug_print(f"case11,Exception", level=2)
             val = fallback_value
 
         return val
+
+    def add_section(self, section: str) -> None:
+        """
+        セクションを新規追加する関数。
+
+        Parameters:
+            section (str): 追加するセクション名
+        """
+        if section not in self.config:
+            self.config.add_section(section)  # configparser.ConfigParserの add_section を使用
+        if section not in self.ini_dict:
+            self.ini_dict[section] = {}  # ini_dictにも空の辞書を登録する
+
+    def add_ini_dict_keys(self, section: str, items: Dict[str, IniItem]) -> None:
+        """
+        ini_dict に指定セクションへ複数のキー情報を追加する。
+
+        Parameters:
+            section (str): 追加対象のセクション名
+            items (Dict[str, Dict[str, Any]]): 追加するキーと型情報。例:
+                {
+                    'key1': {'type': int, 'inf': 123},
+                    'key2': {'type': str, 'inf': 'abc'}
+                }
+
+        Raises:
+            KeyError: 指定セクションが ini_dict に存在しない場合
+            ValueError: アイテムの形式が正しくない場合
+        """
+        if section not in self.ini_dict:
+            raise KeyError(f"Section '{section}' not found in ini_dict.")
+
+        for key, meta in items.items():
+            if not isinstance(meta, dict) or 'type' not in meta or 'inf' not in meta:
+                raise ValueError(f"Invalid format for key '{key}'. Must include 'type' and 'inf'.")
+            self.ini_dict[section][key] = meta  # 正しく ini_dict に追加
+            #self.def_dictにkey情報が無い場合、self.def_dict[key]にmetaを代入。
+            if key not in self.def_dict:
+                self.def_dict[key] = copy.deepcopy(meta)
 
     def set(self, section: str, key: str, value: IniValue):
         # セクション／キーの存在チェック。self.ini_dictに存在しないセクション,キーの場合エラーとする。
@@ -505,24 +555,36 @@ class IniParser:
     @staticmethod
     def write_inifile(filename: str, config: configparser.ConfigParser, encoding: str) -> None:
         try:
-            with open(filename, 'w', encoding=encoding) as configfile:
-                # まずDEFAULTセクションを明示的に書き込む
-                defaults = config.defaults()
-                if defaults:
-                    configfile.write("[DEFAULT]\n")
-                    for key, value in defaults.items():
-                        configfile.write(f"{key} = {value}\n")
-                    configfile.write("\n")
-                # ここでDEFAULTキーを除いたcopyを作る
-                # 書き込み対象のセクションのために一時configを作成
-                temp_config = configparser.ConfigParser(interpolation=None)
-                # DEFAULTはtemp_configには入れない
-                for section in config.sections():
-                    temp_config.add_section(section)
-                    for key, value in config.items(section):
-                        temp_config.set(section, key, value)
-                # temp_configを書き込む（DEFAULTを含まない）
-                temp_config.write(configfile)
+            # 1. DEFAULTセクション情報を抽出
+            defaults = config.defaults()
+            default_items = dict(defaults)  # コピー
+
+            # 2. DEFAULTセクションのキーを config から削除
+            for key in list(defaults.keys()):
+                config.remove_option('DEFAULT', key)
+
+            # 3. DEFAULTを除いた内容を一時文字列に書き込み
+            import io
+            temp_io = io.StringIO()
+            config.write(temp_io)
+            other_sections_content = temp_io.getvalue()
+            temp_io.close()
+
+            # 4. ファイルに書き込み（DEFAULTセクションを先頭に書く）
+            with open(filename, 'w', encoding=encoding) as f:
+                if default_items:
+                    f.write("[DEFAULT]\n")
+                    for key, val in default_items.items():
+                        f.write(f"{key} = {val}\n")
+                    f.write("\n")  # セクション区切り改行
+
+                # 5. DEFAULT以外のセクション内容を書き込む
+                f.write(other_sections_content)
+
+            # 6. configにDEFAULTセクションの値を戻す
+            for key, value in default_items.items():
+                config.set('DEFAULT', key, value)
+
         except Exception as e:
             IniParser.die_print(f"Error writing to file {filename}: {e}")
 

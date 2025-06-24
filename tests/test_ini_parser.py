@@ -94,11 +94,6 @@ def get_ini_dict_val2() -> ini.IniDict:
     ini fileのsection="DEFAULT"に設定したい情報をdict形式で設定
     '''
     return {
-        "DEFAULT": {
-            'user': {'type': str, 'inf': 'default'},
-            'password': {'type': str, 'inf': 'defpasswd'},
-            'host': {'type': str, 'inf': '172.31.2.99'},
-        },
         'sandbox': {
             'user': {'type': str, 'inf': 'root'},
             'password': {'type': str, 'inf': 'hogeroot'},
@@ -123,6 +118,21 @@ def get_ini_dict_val2() -> ini.IniDict:
         },
     }
 
+
+def get_ini_dict_val3() -> ini.IniDict:
+    '''
+    ini fileのsection="DEFAULT"に設定したい情報をdict形式で設定
+    '''
+    return {
+        'Callback': {
+            'in_file': {'type': str, 'inf': 'hoge.bat'},
+        },
+        'user1': {
+            'user': {'type': str, 'inf': 'user1'},
+            'password': {'type': str, 'inf': 'hogepass1'},
+            'host': {'type': str, 'inf': '172.31.2.190'},
+        },
+    }
 def test_read_set_write_config_value():
     ini_file = "config.ini"
     if os.path.isfile(ini_file):
@@ -657,3 +667,94 @@ def test_def_keys():
         actual[section_name] = sorted(list(ini_parser[section_name].keys()))
 
     assert actual == expected, f"Mismatch in section keys.\nExpected:\n{expected}\nActual:\n{actual}"
+
+def test_nosection_set():
+    ini_file = "config2.ini"
+    encoding = "utf8"
+    if os.path.isfile(ini_file):
+        os.remove(ini_file)
+    assert not os.path.exists(ini_file)
+
+    default_ini = get_ini_dict_val3()
+    ini.IniParser.set_die_mode(ini.DieMode.nException)
+    try:
+        ini_parser = ini.IniParser(ini_file, default_ini, encoding)
+    except ini.IniParserError as e:
+        print(e)
+        sys.exit(1)
+
+    # when no section
+    with pytest.raises(ini.IniParserError):
+        ini_parser.set('user4', 'user','user_4')
+
+    ini_parser.add_section("user4")  # 先にセクションを追加
+    # ini_dictに追加設定
+    ini_parser.add_ini_dict_keys("user4", {
+        "user": {"type": str, "inf": "user_4"},
+        "password": {"type": str, "inf": "pass1234"},
+        "host": {"type": str, "inf": "172.31.2.199"}
+    })
+
+    # 対象のkey情報が無いため、セクションDEFAULTに定義されている情報を取得。
+    assert ini_parser.get('user4', 'user') == 'user1'
+    assert ini_parser.get('user4', 'password') == 'hogepass1'
+    assert ini_parser.get('user4', 'host') == '172.31.2.190'
+
+    ini_parser.set('user4', 'user','user_4x')
+    ini_parser.set('user4', 'password', 'pass1234x')
+    ini_parser.set('user4', 'host', '172.31.2.99')
+
+    assert ini_parser.get('user4', 'user') == 'user_4x'
+    assert ini_parser.get('user4', 'password') == 'pass1234x'
+    assert ini_parser.get('user4', 'host') == '172.31.2.99'
+
+    ini_parser.set('user1', 'user','user-1x')
+    ini_parser.set('user1', 'password', 'pass1234-x')
+    ini_parser.set('user1', 'host', '172.31.102.99')
+    # テスト実行
+    assert ini_parser.get('user1', 'user') == 'user-1x'
+    assert ini_parser.get('user1', 'password') == 'pass1234-x'
+    assert ini_parser.get('user1', 'host') == '172.31.102.99'
+
+    # 対象のkey情報が無いため、セクションDEFAULTに定義されている情報を取得。
+    assert ini_parser.get('user2', 'user') == 'user1'
+    assert ini_parser.get('user2', 'password') == 'hogepass1'
+    assert ini_parser.get('user2', 'host') == '172.31.2.190'
+
+    assert ini_parser.get('user3', 'user') == 'user1'
+    assert ini_parser.get('user3', 'password') == 'hogepass1'
+    assert ini_parser.get('user3', 'host') == '172.31.2.190'
+
+    assert ini_parser.get('sandbox', 'user') == 'user1'
+    assert ini_parser.get('sandbox', 'password') == 'hogepass1'
+    assert ini_parser.get('sandbox', 'host') == '172.31.2.190'
+
+def test_no_inidict():
+    ini_file = "config2.ini"
+    encoding = "utf8"
+    if os.path.isfile(ini_file):
+        os.remove(ini_file)
+    assert not os.path.exists(ini_file)
+
+    fixed_text = textwrap.dedent("""\
+        [user2]
+        user = user2
+        password = hogepass2
+        host = 172.31.2.191
+        port = 40
+    """)
+    with open(ini_file, 'w', encoding=encoding) as f:
+        f.write(fixed_text)
+    default_ini = get_ini_dict_val3()
+    ini.IniParser.set_die_mode(ini.DieMode.nException)
+    try:
+        ini_parser = ini.IniParser(ini_file, default_ini, encoding)
+    except ini.IniParserError as e:
+        print(e)
+        sys.exit(1)
+
+    # ini_dictに情報なし。iniファイルに情報ありの場合
+    assert ini_parser.get('user2', 'user') == 'user2'
+    assert ini_parser.get('user2', 'password') == 'hogepass2'
+    assert ini_parser.get('user2', 'host') == '172.31.2.191'
+    assert ini_parser.get('user2', 'port') == '40'

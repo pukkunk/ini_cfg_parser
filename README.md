@@ -53,7 +53,53 @@ print(f"DataBit={DataBit},type={type(DataBit)}")
 StopBit = ini_parser.get(section, 'StopBit')
 print(f"StopBit={StopBit},type={type(StopBit)}")
 ```
-### The `ini_parser` instance is initialized with a parameter get_ini_dict_val, which is of type IniDict — a user-defined dictionary structure specifying default values and their expected types.
+If the ini file does not exist, the following config.ini will be created.
+```cmd
+# config.ini
+[DEFAULT]
+lst_language = English,Japanese,Russian,Korean
+langage = 0
+cygwindirectory = c:\uty\cygwin
+comport = 1
+lst_parity = even,odd,none,mark,space
+parity = 0
+databit = 8
+stopbit = 1
+
+[setting1]
+lst_language = English,Japanese,Russian,Korean
+langage = 0
+cygwindirectory = c:\uty\cygwin
+comport = 1
+lst_parity = even,odd,none,mark,space
+parity = 0
+databit = 8
+stopbit = 1
+```
+The result of executing the above script.
+```cmd
+lst_language=['English', 'Japanese', 'Russian', 'Korean'],type=<class 'list'>
+langage=0,type=<class 'int'>
+langage setting=English,type=<class 'str'>
+CygwinDirectory=c:\uty\cygwin,type=<class 'str'>
+ComPort=1,type=<class 'int'>
+lst_Parity=['even', 'odd', 'none', 'mark', 'space'],type=<class 'list'>
+parity=0,type=<class 'int'>
+parity setting=even,type=<class 'str'>
+DataBit=8,type=<class 'int'>
+StopBit=1,type=<class 'int'>
+```
+
+### overview
+- The `ini_cfg_parser` instance is initialized with the parameter get_ini_dict_val of type IniDict.
+- The get_ini_dict_val parameter is a user-defined dictionary structure that specifies default values ​​and their expected types.
+
+```cmd
+# @param[in]    ini_path        : Path information for the ini file.(type=str)
+# @param[in]    get_ini_dict_val: This parameter is a user-defined dictionary structure that specifies default values ​​and their expected types.(type=IniDict)
+# @param[in]    encoding        : The type of character code encoding.(type=str)
+ini_parser = ini.IniParser(ini_path=ini_file, get_ini_dict_val=default_ini, encoding=encoding)
+```
 
 #### Section structure
 ```python
