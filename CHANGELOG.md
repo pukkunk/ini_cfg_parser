@@ -6,6 +6,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v0.1.4] - 2025-06-25
+### Changed
+- `setup.cfg`: 
+  - Changed python_requires from 3.10 to 3.8.
+- `ini_cfg_parser/ini_cfg_parser.py`: 
+  - `match` statements have been changed to `if` statements. Reason=To accommodate a wider range of Python environments.
+
 ## [v0.1.3] - 2025-06-25
 ###Fixed
 - `ini_cfg_parser/ini_cfg_parser.py`: 

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-# Copyright (c) 2025 pukkun
+# Copyright (c) 2025 pukkunk
 # coding: utf-8
 
 import os
@@ -718,28 +718,27 @@ class IniParser:
 
     @classmethod
     def die_print(cls, msg: str) -> None:
-        match IniParser.mode:
-            case DieMode.nTkInter | DieMode.nTkInterException:
-                try:
-                    import tkinter as tk
-                    from tkinter import messagebox
-                    root = tk.Tk()
-                    root.withdraw()  # メインウィンドウを表示しない
-                    messagebox.showerror("Error", msg)
-                    root.destroy()  # 明示的に閉じる
-                    if IniParser.mode == DieMode.nTkInterException:
-                        raise IniParserError(msg)
-                    else:
-                        sys.exit(NG_VAL)
-                except Exception as e:
-                    # 最終手段:printで通知(_DIEPRINT_STREAMを使用)
-                    print(f"GUIエラー: {e}", file=cls._DIEPRINT_STREAM)
-                    print(msg, file=cls._DIEPRINT_STREAM)
-            case DieMode.nSysExit:
+        if IniParser.mode in (DieMode.nTkInter, DieMode.nTkInterException):
+            try:
+                import tkinter as tk
+                from tkinter import messagebox
+                root = tk.Tk()
+                root.withdraw()  # メインウィンドウを表示しない
+                messagebox.showerror("Error", msg)
+                root.destroy()  # 明示的に閉じる
+                if IniParser.mode == DieMode.nTkInterException:
+                    raise IniParserError(msg)
+                else:
+                    sys.exit(NG_VAL)
+            except Exception as e:
+                # 最終手段:printで通知(_DIEPRINT_STREAMを使用)
+                print(f"GUIエラー: {e}", file=cls._DIEPRINT_STREAM)
                 print(msg, file=cls._DIEPRINT_STREAM)
-                sys.exit(NG_VAL)
-            case DieMode.nException:
-                raise IniParserError(msg)
+        elif IniParser.mode == DieMode.nSysExit:
+            print(msg, file=cls._DIEPRINT_STREAM)
+            sys.exit(NG_VAL)
+        elif IniParser.mode == DieMode.nException:
+            raise IniParserError(msg)
 
     class SectionProxy:
         def __init__(self, parser, section):
