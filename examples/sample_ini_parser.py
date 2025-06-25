@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: MIT
-# Copyright (c) 2025 pukkun
+# Copyright (c) 2025 pukkunk
 # coding: utf-8
 
 import os

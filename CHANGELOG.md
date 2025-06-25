@@ -6,6 +6,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v0.1.5] - 2025-06-26
+### Changed
+- `ini_cfg_parser/ini_cfg_parser.py`: 
+  - Removed unused import process for libirar packaging.
+- `tests/test_ini_parser.py`: 
+  - def test_is_valid_ini_dict(): Added
+  - def test_is_valid_ini_value(): Added
+  - def test_set_use_def_val(): Added
+  - def test_set_fallback_def_val(): Added
+  - def test_die_print(capsys): Added
+- `setup.cfg`:
+  - Removed 'packaging' from install_requires.
+
 ## [v0.1.4] - 2025-06-25
 ### Changed
 - `setup.cfg`: 

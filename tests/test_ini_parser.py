@@ -758,3 +758,100 @@ def test_no_inidict():
     assert ini_parser.get('user2', 'password') == 'hogepass2'
     assert ini_parser.get('user2', 'host') == '172.31.2.191'
     assert ini_parser.get('user2', 'port') == '40'
+
+def test_is_valid_ini_dict():
+    default_ini = get_ini_dict_val()
+    assert ini.IniParser.is_valid_ini_dict(default_ini) == True
+    default_ini = get_ini_dict_val2()
+    assert ini.IniParser.is_valid_ini_dict(default_ini) == True
+    default_ini = {
+        'Callback': {
+            'backup': False,
+        }
+    }
+    assert ini.IniParser.is_valid_ini_dict(default_ini) == False
+    default_ini = "hogehoge"
+    assert ini.IniParser.is_valid_ini_dict(default_ini) == False
+    default_ini = {
+        'Callback': {
+            1: False,
+            2: True,
+        }
+    }
+    assert ini.IniParser.is_valid_ini_dict(default_ini) == False
+    default_ini = {
+        100: {
+            'backup': False,
+        }
+    }
+    assert ini.IniParser.is_valid_ini_dict(default_ini) == False
+    default_ini = {
+        'Callback': 'backup',
+    }
+    assert ini.IniParser.is_valid_ini_dict(default_ini) == False
+
+def test_is_valid_ini_value():
+    assert ini.IniParser.is_valid_ini_value('string') == True
+    assert ini.IniParser.is_valid_ini_value([1, 2, 3]) == True
+    assert ini.IniParser.is_valid_ini_value([1.1, 2.1, 3.1]) == True
+    assert ini.IniParser.is_valid_ini_value([True, False]) == True
+    assert ini.IniParser.is_valid_ini_value(['hello', 'world']) == True
+    default_ini = get_ini_dict_val()
+    assert ini.IniParser.is_valid_ini_value(default_ini) == False
+
+def test_set_use_def_val():
+    ini.IniParser.set_use_def_val(True)
+    with pytest.raises(ini.IniParserError):
+        ini.IniParser.set_use_def_val('hogehoge')
+
+def test_set_fallback_def_val():
+    ini.IniParser.set_fallback_def_val('string')
+    ini.IniParser.set_fallback_def_val([1, 2, 3])
+    ini.IniParser.set_fallback_def_val([1.1, 2.1, 3.1])
+    ini.IniParser.set_fallback_def_val([True, False])
+    ini.IniParser.set_fallback_def_val(['hello', 'world'])
+    default_ini = get_ini_dict_val()
+    with pytest.raises(ini.IniParserError):
+        ini.IniParser.set_fallback_def_val(default_ini)
+
+def test_die_print(capsys):
+    ini.IniParser.set_dieprint_output("stdout")
+    ini.IniParser.set_die_mode(ini.DieMode.nSysExit)
+    msg = "hello world"
+    with pytest.raises(SystemExit) as exc_info:
+        ini.IniParser.die_print(msg)
+
+    # sys.exit(1) が呼ばれたことを確認
+    assert exc_info.type == SystemExit
+    assert exc_info.value.code == 1
+
+    # printされた出力を確認
+    captured = capsys.readouterr()
+    assert msg in captured.out
+
+    #-----
+    ini.IniParser.set_dieprint_output("stderr")
+    ini.IniParser.set_die_mode(ini.DieMode.nSysExit)
+    msg = "hello world"
+    with pytest.raises(SystemExit) as exc_info:
+        ini.IniParser.die_print(msg)
+
+    # sys.exit(1) が呼ばれたことを確認
+    assert exc_info.type == SystemExit
+    assert exc_info.value.code == 1
+
+    # printされた出力を確認
+    captured = capsys.readouterr()
+    assert "" == captured.out
+    assert msg in captured.err
+
+    #-----
+    ini.IniParser.set_dieprint_output("stdout")
+    ini.IniParser.set_die_mode(ini.DieMode.nException)
+    msg = "hello world"
+    with pytest.raises(ini.IniParserError) as exc_info:
+        ini.IniParser.die_print(msg)
+    assert exc_info.type == ini.IniParserError
+
+    # 例外メッセージに msg が含まれていることを確認
+    assert msg in str(exc_info.value)

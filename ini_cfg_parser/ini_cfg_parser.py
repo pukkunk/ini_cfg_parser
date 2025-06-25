@@ -20,14 +20,6 @@ class DieMode(IntEnum):
 class IniParserError(Exception):
     pass
 
-try:
-    from packaging import version
-except ImportError:
-    print('requires "packaging" package.')
-    print('Install it via command:')
-    print('    pip install packaging')
-    raise
-
 OK_VAL = 0
 NG_VAL = 1
 
