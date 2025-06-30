@@ -6,6 +6,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v0.1.6] - 2025-06-30
+### Changed
+- `ini_cfg_parser/ini_cfg_parser.py`: 
+  - When type is List[str], it is now compatible with "csv format".  It is now compatible with strings containing "," enclosed in double quotation marks.
+  - Create a self.parsed_val variable to store the information.
+- `tests/test_ini_parser.py`: 
+  - def test_ini_setting_csvfmt(): Added
+  - def test_parsed_val(): Added
+- `examples/sample_ini_parser.py`: 
+  - Corrected the example to use the variable parsed_val.
+  - Removed the version check process.
+
 ## [v0.1.5] - 2025-06-26
 ### Changed
 - `ini_cfg_parser/ini_cfg_parser.py`: 

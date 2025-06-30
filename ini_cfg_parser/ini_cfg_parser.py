@@ -7,6 +7,8 @@ import sys
 import re
 import pprint
 import copy
+import csv
+import io
 import configparser
 from enum import IntEnum,auto
 from typing import Any, List, Tuple, Dict, Union, Optional, Callable, get_origin, get_args, TypedDict, Type
@@ -82,6 +84,7 @@ class IniParser:
             msg += pprint.pformat(get_ini_dict_val)
             IniParser.die_print(msg)
         self.encoding = encoding
+        self.parsed_val: Dict[str, Dict[str, Any]] = {}
 
         self.ini_dict = get_ini_dict_val
         self.def_dict = self._merge_config_sections()
@@ -237,6 +240,8 @@ class IniParser:
                 if not section == 'DEFAULT':
                     self.config.add_section(section)
                 modified = True
+            if section not in self.parsed_val:
+                self.parsed_val[section] = {}
 
             for key, val_info in params.items():
                 # 期待のtype情報を取得
@@ -260,7 +265,7 @@ class IniParser:
                         self.config.set(section, key, self._to_string(val))
                         #modified = True
 
-                    #self.ini_dict[section][key]['val'] = val
+                    self.parsed_val[section][key] = val
                 except ValueError as e:
                     self.die_print(f"Detect error. ValueError. [{section}] {key}: {e}")
                 except Exception as e:
@@ -284,7 +289,8 @@ class IniParser:
             elif typ == float:
                 return float(val)
             elif typ == list or typ == List[str]:
-                return [v.strip() for v in val.split(',')]
+                reader = csv.reader(io.StringIO(val), skipinitialspace=True)
+                return next(reader)  # 1行だけ読めば良い
             elif typ == List[int]:
                 return [int(v.strip()) for v in val.split(',')]
             elif typ == List[float]:
@@ -311,7 +317,12 @@ class IniParser:
     # @param[in]    fallback        : fallback value [type _sentinel]
     # @retval                       : result value [type Any]
     def get(self, section: str, key: str, fallback=_sentinel) -> Any:
-        return self._get_value(section, key, fallback)
+        # parsed_val にすでに値があるならそれを使う
+        if section in self.parsed_val and key in self.parsed_val[section]:
+            return self.parsed_val[section][key]
+
+        val = self._get_value(section, key, fallback)
+        return val
 
     ##@fn _get_value()
     # @brief        ini情報を取得する。指定したsection,keyに対応した情報を取得。
@@ -449,6 +460,9 @@ class IniParser:
         # 値を更新する
         self.ini_dict[section][key]['inf'] = value
         self.config.set(section, key, self._to_string(value))
+        if section not in self.parsed_val:  # セクションが無い場合は作成
+            self.parsed_val[section] = {}
+        self.parsed_val[section][key] = value
 
     def save(self):
         IniParser.write_inifile(self.ini_path, self.config, self.encoding)
