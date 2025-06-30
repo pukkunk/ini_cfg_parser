@@ -522,16 +522,23 @@ def test_fallback_def_val_use_def_val():
     key = 'backup'
     inf = ini_parser.get(section, key)
     assert inf == False
+    
+    # when ini.IniParser.set_use_def_val(False) and 
+    # when no fallback is specified.
     section = 'config'
     key = 'lst_bool'
     inf = ini_parser.get(section, key)
+    assert inf == None
+
+    # when ini.IniParser.set_use_def_val(True) and 
+    # when fallback_def_val is set
     ini.IniParser.set_use_def_val(True)
     lst_bool = None
     ini.IniParser.set_fallback_def_val([False, True])
-    lst_bool = ini_parser.get(section, key)
-    assert lst_bool == [False, True]
     assert ini.IniParser.get_use_def_val() == True
     assert ini.IniParser.get_fallback_def_val() == [False, True]
+    lst_bool = ini_parser.get(section, key)
+    assert lst_bool == [False, True]
 
 def test_def_items():
     ini_file = "config.ini"
@@ -855,3 +862,110 @@ def test_die_print(capsys):
 
     # 例外メッセージに msg が含まれていることを確認
     assert msg in str(exc_info.value)
+
+def test_ini_setting_csvfmt(capsys):
+    ini_file = "config.ini"
+    encoding = "utf8"
+    if os.path.isfile(ini_file):
+        os.remove(ini_file)
+    assert not os.path.exists(ini_file)
+
+    fixed_text = textwrap.dedent("""\
+        [config]
+        ext = .jpg,.jpeg,.png,.tif
+        ext2 = ".c", ".h", ".cpp"
+        lst_inf = "abc,def","hello, world","My name is Yamada."
+        lst_inf2 = "1,234","5,678","This is, indeed, a test."
+    """)
+    with open(ini_file, 'w', encoding=encoding) as f:
+        f.write(fixed_text)
+    default_ini = {
+        'config': {
+            'ext': {'type': List[str], 'inf': ['.txt']},
+            'ext2': {'type': List[str], 'inf': ['.vhd']},
+            'lst_inf': {'type': List[str], 'inf': ['hello world']},
+            'lst_inf2': {'type': List[str], 'inf': ['hogehoge']},
+        },
+    }
+    ini.IniParser.set_die_mode(ini.DieMode.nException)
+    try:
+        ini_parser = ini.IniParser(ini_file, default_ini, encoding)
+    except ini.IniParserError as e:
+        print(e)
+        sys.exit(1)
+    section = 'config'
+    key = 'ext'
+    assert [".jpg", ".jpeg", ".png", ".tif"] == ini_parser.get(section, key)
+    key = 'ext2'
+    assert [".c", ".h", ".cpp"] == ini_parser.get(section, key)
+    key = 'lst_inf'
+    assert ["abc,def", "hello, world", "My name is Yamada."] == ini_parser.get(section, key)
+    key = 'lst_inf2'
+    assert ["1,234", "5,678", "This is, indeed, a test."] == ini_parser.get(section, key)
+
+def test_parsed_val(capsys):
+    ini_file = "config.ini"
+    if os.path.isfile(ini_file):
+        os.remove(ini_file)
+
+    encoding = "utf8"
+    default_ini = {
+        'Callback': {
+            'backup': {'type': bool, 'inf': False},
+            'zip': {'type': bool, 'inf': False},
+            'repall': {'type': bool, 'inf': False},
+            'original': {'type': bool, 'inf': False},
+            'ignorecase': {'type': bool, 'inf': False},
+            'multiline': {'type': bool, 'inf': False},
+            'dotall': {'type': bool, 'inf': False},
+            'fullmatch': {'type': bool, 'inf': False},
+            'notregex': {'type': bool, 'inf': False},
+            'lst_int': {'type': List[int], 'inf': [999]},
+            'lst_float': {'type': List[float], 'inf': [3.14, 1.23]},
+            'lst_bool': {'type': List[bool], 'inf': [False, True]},
+            'ext': {'type': List[str], 'inf': ['.txt', '.py' , '.pl', '.vhd', '.c']},
+            'resultdir': {'type': str, 'inf': 'Result'},
+            'in_file': {'type': str, 'inf': 'hoge.bat'},
+            'level': {'type': int, 'inf': 100},
+            'pi': {'type': float, 'inf': 3.14},
+        },
+        'user1': {
+            'user': {'type': str, 'inf': 'user1'},
+            'password': {'type': str, 'inf': 'hogepass1'},
+            'host': {'type': str, 'inf': '172.31.2.190'},
+        },
+    }
+    ini.IniParser.set_die_mode(ini.DieMode.nException)
+    try:
+        ini_parser = ini.IniParser(ini_file, default_ini, encoding)
+    except ini.IniParserError as e:
+        print(e)
+        sys.exit(1)
+    expected = {
+        'Callback': {
+            'backup': False,
+            'zip': False,
+            'repall': False,
+            'original': False,
+            'ignorecase': False,
+            'multiline': False,
+            'dotall': False,
+            'fullmatch': False,
+            'notregex': False,
+            'lst_int': [999],
+            'lst_float': [3.14, 1.23],
+            'lst_bool': [False, True],
+            'ext': ['.txt', '.py', '.pl', '.vhd', '.c'],
+            'resultdir': 'Result',
+            'in_file': 'hoge.bat',
+            'level': 100,
+            'pi': 3.14,
+        },
+        'user1': {
+            'user': 'user1',
+            'password': 'hogepass1',
+            'host': '172.31.2.190',
+        },
+    }
+
+    assert ini_parser.parsed_val == expected
