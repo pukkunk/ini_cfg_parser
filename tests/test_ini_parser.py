@@ -872,15 +872,22 @@ def test_ini_setting_csvfmt(capsys):
 
     fixed_text = textwrap.dedent("""\
         [config]
-        ext = .jpg,.jpeg,.png,.tif
-        ext2 = ".c", ".h", ".cpp"
         lst_inf = "abc,def","hello, world","My name is Yamada."
         lst_inf2 = "1,234","5,678","This is, indeed, a test."
+        lst_int = "1" ,  2 ,  4, 8, 16, 32, 64 , "128"
+        lst_float = 1.1 , 2.1 , 4.0 , 8.3 , 16.1 , 32.1 , 64.1 , 128.1
+        lst_bool = True, False, yes, no, 1, 0
+        ext = .c , .cpp, .h
+        ext2 = ".txt", ".py", ".pl"
     """)
     with open(ini_file, 'w', encoding=encoding) as f:
         f.write(fixed_text)
     default_ini = {
-        'config': {
+            'config': {
+            'lst_int': {'type': List[int], 'inf': [999]},
+            'lst_float': {'type': List[float], 'inf': [3.14, 1.23]},
+            'lst_bool': {'type': List[bool], 'inf': [False, True]},
+            'ext': {'type': List[str], 'inf': ['.txt', '.py' , '.pl', '.vhd', '.c']},
             'ext': {'type': List[str], 'inf': ['.txt']},
             'ext2': {'type': List[str], 'inf': ['.vhd']},
             'lst_inf': {'type': List[str], 'inf': ['hello world']},
@@ -895,13 +902,19 @@ def test_ini_setting_csvfmt(capsys):
         sys.exit(1)
     section = 'config'
     key = 'ext'
-    assert [".jpg", ".jpeg", ".png", ".tif"] == ini_parser.get(section, key)
+    assert [".c", ".cpp", ".h"] == ini_parser.get(section, key)
     key = 'ext2'
-    assert [".c", ".h", ".cpp"] == ini_parser.get(section, key)
+    assert [".txt", ".py", ".pl"] == ini_parser.get(section, key)
     key = 'lst_inf'
     assert ["abc,def", "hello, world", "My name is Yamada."] == ini_parser.get(section, key)
     key = 'lst_inf2'
     assert ["1,234", "5,678", "This is, indeed, a test."] == ini_parser.get(section, key)
+    key = 'lst_int'
+    assert [1, 2, 4, 8, 16, 32, 64 ,128] == ini_parser.get(section, key)
+    key = 'lst_float'
+    assert [1.1, 2.1, 4.0, 8.3, 16.1, 32.1, 64.1 ,128.1] == ini_parser.get(section, key)
+    key = 'lst_bool'
+    assert [True, False, True, False, True, False] == ini_parser.get(section, key)
 
 def test_parsed_val(capsys):
     ini_file = "config.ini"

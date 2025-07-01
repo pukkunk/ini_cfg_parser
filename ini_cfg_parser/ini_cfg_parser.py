@@ -11,7 +11,7 @@ import csv
 import io
 import configparser
 from enum import IntEnum,auto
-from typing import Any, List, Tuple, Dict, Union, Optional, Callable, get_origin, get_args, TypedDict, Type
+from typing import Any, List, Tuple, Dict, Union, Optional, Callable, get_origin, get_args, TypedDict, Type, cast
 
 class DieMode(IntEnum):
     nSysExit = auto()
@@ -290,13 +290,20 @@ class IniParser:
                 return float(val)
             elif typ == list or typ == List[str]:
                 reader = csv.reader(io.StringIO(val), skipinitialspace=True)
-                return next(reader)  # 1行だけ読めば良い
+                return [v.strip() for v in next(reader)] 
             elif typ == List[int]:
-                return [int(v.strip()) for v in val.split(',')]
+                reader = csv.reader(io.StringIO(val), skipinitialspace=True)
+                lst_val = cast(List[str], next(reader))
+                return cast(List[int], [int(v.strip()) for v in lst_val])
             elif typ == List[float]:
-                return [float(v.strip()) for v in val.split(',')]
+                reader = csv.reader(io.StringIO(val), skipinitialspace=True)
+                lst_val = next(reader)
+                return cast(List[float], [float(v.strip()) for v in lst_val])
             elif typ == List[bool]:
-                return [v.strip().lower() in ['true', '1', 'yes', 'on'] for v in val.split(',')]
+                reader = csv.reader(io.StringIO(val), skipinitialspace=True)
+                lst_val = next(reader)
+                truthy_values = {'true', '1', 'yes', 'on'}
+                return cast(List[bool], [v.strip().lower() in truthy_values for v in lst_val])
             return val
         except Exception as e:
             raise ValueError(f"Failed to cast '{val}' to {typ}: {e}")

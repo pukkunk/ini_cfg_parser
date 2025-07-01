@@ -6,6 +6,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [v0.1.7] - 2025-07-01
+### Fixed
+- `ini_cfg_parser/ini_cfg_parser.py`: 
+  - Fixed a bug where unnecessary half-width characters were included when there were half-width spaces before and after the comma (,) when type was List[str].
+### Changed
+- `ini_cfg_parser/ini_cfg_parser.py`: 
+  - Supports "csv format" when the type is List[int], List[float], or List[bool].
+- `tests/test_ini_parser.py`: 
+  - def test_ini_setting_csvfmt(): Added a test for list type.
+
 ## [v0.1.6] - 2025-06-30
 ### Changed
 - `ini_cfg_parser/ini_cfg_parser.py`: 
