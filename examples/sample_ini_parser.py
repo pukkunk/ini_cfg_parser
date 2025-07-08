@@ -5,7 +5,6 @@
 import os
 import sys
 import re
-import configparser
 
 OK_VAL = 0
 NG_VAL = 1
@@ -14,7 +13,7 @@ try:
     import ini_cfg_parser as ini
 except ImportError as e:
     msg = f"The 'ini_cfg_parser' module is required but not installed.\n"
-    msg += f"You can install it with: pip install ini_cfg_parser-x.x.x-py3-none-any.whl\n"
+    msg += f"You can install it with: pip install ini_cfg_parser\n"
     msg += f"Details: {e}"
     print(msg)
     raise SystemExit(NG_VAL)
