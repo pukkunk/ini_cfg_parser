@@ -1,5 +1,5 @@
 # ini_parser.py
-English version → [README.md](README.md)
+English version → [README.ja.md](https://github.com/pukkunk/ini_cfg_parser/blob/main/README.md)
 
 > このモジュールは、Python 標準の configparser モジュールを拡張したユーティリティです。INI ファイルの読み書きに関して、型変換やデフォルト値の自動補完などの機能を追加しています。
 

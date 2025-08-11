@@ -1,5 +1,5 @@
 # ini_parser.py
-日本語版はこちら → [README.ja.md](README.ja.md)
+日本語版はこちら → [README.ja.md](https://github.com/pukkunk/ini_cfg_parser/blob/main/README.ja.md)
 
 > This module is a utility that extends Python's built-in configparser module. It provides enhanced functionality for reading from and writing to INI files, including support for type conversion and default value interpolation.
 
