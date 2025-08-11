@@ -1,17 +1,16 @@
 # ini_parser.py
-日本語版はこちら → [README.ja.md](README.ja.md)
+English version → [README.md](README.md)
 
-> This module is a utility that extends Python's built-in configparser module. It provides enhanced functionality for reading from and writing to INI files, including support for type conversion and default value interpolation.
+> このモジュールは、Python 標準の configparser モジュールを拡張したユーティリティです。INI ファイルの読み書きに関して、型変換やデフォルト値の自動補完などの機能を追加しています。
 
-## function
-It can get and set configuration information in ini format.
+## 機能
+INI 形式の設定情報を取得および設定できます。
 
-This library is an enhanced parser for INI configuration files that allows you to define type information and default values in advance.
-When a value is missing from the INI file, the parser automatically fills in the predefined default value.
-Additionally, string values in the INI file are automatically converted to the specified types (e.g., int, bool, List[str], etc.) based on the provided type definitions.
+このライブラリは、INI 設定ファイル用の拡張パーサーであり、あらかじめ型情報やデフォルト値を定義できます。  
+INI ファイルに値が存在しない場合、事前定義されたデフォルト値が自動的に適用されます。  
+さらに、INI ファイル内の文字列値は、指定された型定義に基づいて自動的に変換されます（例：int、bool、List[str] など）。
 
-
-Usage
+使用例
 ```python
 import ini_cfg_parser as ini
 from typing import List
@@ -54,7 +53,8 @@ print(f"DataBit={DataBit},type={type(DataBit)}")
 StopBit = ini_parser.get(section, 'StopBit')
 print(f"StopBit={StopBit},type={type(StopBit)}")
 ```
-If the ini file does not exist, the following config.ini will be created.
+INI ファイルが存在しない場合  
+次の config.ini が自動生成されます。
 ```cmd
 # config.ini
 [DEFAULT]
@@ -77,7 +77,7 @@ parity = 0
 databit = 8
 stopbit = 1
 ```
-The result of executing the above script.
+実行結果例
 ```cmd
 lst_language=['English', 'Japanese', 'Russian', 'Korean'],type=<class 'list'>
 langage=0,type=<class 'int'>
@@ -91,54 +91,54 @@ DataBit=8,type=<class 'int'>
 StopBit=1,type=<class 'int'>
 ```
 
-### overview
-- The `ini_cfg_parser` instance is initialized with the parameter get_ini_dict_val of type IniDict.
-- The get_ini_dict_val parameter is a user-defined dictionary structure that specifies default values ​​and their expected types.
+### 概要
+- ini_cfg_parser インスタンスは、IniDict 型の get_ini_dict_val を引数に初期化されます。
+- get_ini_dict_val は、デフォルト値とその型を指定するユーザー定義の辞書構造です。
 
 ```cmd
-# @param[in]    ini_path        : Path information for the ini file.(type=str)
-# @param[in]    get_ini_dict_val: This parameter is a user-defined dictionary structure that specifies default values ​​and their expected types.(type=IniDict)
-# @param[in]    encoding        : The type of character code encoding.(type=str)
+# @param[in]    ini_path        : iniファイルのパス情報 (type=str)
+# @param[in]    get_ini_dict_val: デフォルト値と型情報を定義したユーザー辞書 (type=IniDict)
+# @param[in]    encoding        : 文字コード (type=str)
 ini_parser = ini.IniParser(ini_path=ini_file, get_ini_dict_val=default_ini, encoding=encoding)
 ```
 
-#### Section structure
+#### セクション構造
 ```python
 IniDict = Dict[str, Dict[str, IniItem]]
 ```
 
-#### Type of each ini item
+#### 各 ini 項目の型
 ```python
 class IniItem(TypedDict):
     type: IniType
     inf: IniValue
 ```
 
-#### Defining a type alias
+#### 型エイリアス定義
 ```python
 IniType = Union[Type[str], Type[int], Type[float], Type[bool], Type[List[str]], Type[List[int]], Type[List[float]], Type[List[bool]]]
 IniValue = Union[str, int, float, bool, List[str], List[int], List[float], List[bool]]
 ```
 
-When an error occurs in this library, the function `die_print()` is used to display a message.
+エラーメッセージの出力  
+このライブラリでは、エラー発生時に die_print() 関数でメッセージを表示します。
 
-Operation Mode: There are four operation modes.
+動作モード: 動作モードは 4 種類あります。
 
 - `nSysExit`: Executes `sys.exit(1)` to terminate the script.
 - `nTkInter`: Uses `tkinter` to display a message in a dialog. Then executes `sys.exit(1)` to terminate the script.
 - `nException`: Raises exception `IniParserError`. The error message is passed as the error information of the exception.
 - `nTkInterException`: Uses `tkinter` to display a message in a dialog and then raises the exception `IniParserError`.
 
-Setting the Mode:
-Use `set_die_mode()` to set the mode.
+設定方法:
+set_die_mode() でモードを設定します。
 
-How to set it up:
 
 ```python
 ini.IniParser.set_die_mode(ini.DieMode.nSysExit)
 ```
 
-## Tested Environments
+## 動作確認済み環境
 
 | OS                    | Python Version   |
 |----------------------|-----------------:|

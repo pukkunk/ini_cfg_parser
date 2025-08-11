@@ -5,9 +5,18 @@ All notable changes to this project will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
+
+## [v0.1.8] - 2025-08-11
+### Changed
 - `examples/sample_ini_parser.py`: 
   - Fixed pip install command for ini_cfg_parser.
   - Removed unused configparser.
+- `README.md`: 
+  - Fixed to be able to switch between Japanese and English.
+  - Added Tested Environments.
+### Added
+- `README.ja.md`: 
+- `tests/requirements.txt`: 
 
 ## [v0.1.7] - 2025-07-01
 ### Fixed
