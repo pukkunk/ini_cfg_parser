@@ -144,6 +144,7 @@ ini.IniParser.set_die_mode(ini.DieMode.nSysExit)
 |----------------------|-----------------:|
 | Windows 11 Pro (64-bit) | 3.8.10 (64-bit) |
 | Windows 11 Pro (64-bit) | 3.8.10 (32-bit) |
+| WSL2 Ubuntu-24.04 LTS  | 3.12.3 (64-bit) |
 
 ## license
 MIT License
