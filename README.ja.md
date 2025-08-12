@@ -120,15 +120,15 @@ IniType = Union[Type[str], Type[int], Type[float], Type[bool], Type[List[str]], 
 IniValue = Union[str, int, float, bool, List[str], List[int], List[float], List[bool]]
 ```
 
-エラーメッセージの出力  
+### エラーメッセージの出力  
 このライブラリでは、エラー発生時に die_print() 関数でメッセージを表示します。
 
 動作モード: 動作モードは 4 種類あります。
 
-- `nSysExit`: Executes `sys.exit(1)` to terminate the script.
-- `nTkInter`: Uses `tkinter` to display a message in a dialog. Then executes `sys.exit(1)` to terminate the script.
-- `nException`: Raises exception `IniParserError`. The error message is passed as the error information of the exception.
-- `nTkInterException`: Uses `tkinter` to display a message in a dialog and then raises the exception `IniParserError`.
+- `nSysExit`: `sys.exit(1)` を実行してスクリプトを終了します。
+- `nTkInter`: `tkinter` を使用してダイアログにメッセージを表示します。その後、`sys.exit(1)` を実行してスクリプトを終了します。
+- `nException`: 例外 `IniParserError` を発生させます。エラーメッセージは例外のエラー情報として渡されます。(Default)
+- `nTkInterException`: `tkinter` を使用してダイアログにメッセージを表示し、例外 `IniParserError` を発生させます。
 
 設定方法:
 set_die_mode() でモードを設定します。

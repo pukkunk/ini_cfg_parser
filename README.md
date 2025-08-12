@@ -120,13 +120,14 @@ IniType = Union[Type[str], Type[int], Type[float], Type[bool], Type[List[str]], 
 IniValue = Union[str, int, float, bool, List[str], List[int], List[float], List[bool]]
 ```
 
+### Error message output
 When an error occurs in this library, the function `die_print()` is used to display a message.
 
 Operation Mode: There are four operation modes.
 
 - `nSysExit`: Executes `sys.exit(1)` to terminate the script.
 - `nTkInter`: Uses `tkinter` to display a message in a dialog. Then executes `sys.exit(1)` to terminate the script.
-- `nException`: Raises exception `IniParserError`. The error message is passed as the error information of the exception.
+- `nException`: Raises exception `IniParserError`. The error message is passed as the error information of the exception.(Default)
 - `nTkInterException`: Uses `tkinter` to display a message in a dialog and then raises the exception `IniParserError`.
 
 Setting the Mode:
